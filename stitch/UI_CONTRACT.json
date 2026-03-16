@@ -1,0 +1,117 @@
+[
+  {
+    "screenId": "86f3d96cb9f341298a9e6a768deeb504",
+    "screenTitle": "Pomodoro Timer Main Screen",
+    "deviceType": "DESKTOP",
+    "elements": [
+      {
+        "type": "button",
+        "label": "settings",
+        "line": 50
+      },
+      {
+        "type": "button",
+        "label": "WORK",
+        "line": 60
+      },
+      {
+        "type": "button",
+        "label": "BREAK",
+        "line": 63
+      },
+      {
+        "type": "button",
+        "label": "play_arrow\n          Start",
+        "line": 86
+      },
+      {
+        "type": "button",
+        "label": "refresh",
+        "line": 90
+      },
+      {
+        "type": "button",
+        "label": "[icon: timer]",
+        "line": 45
+      },
+      {
+        "type": "button",
+        "label": "[icon: settings]",
+        "line": 51
+      },
+      {
+        "type": "button",
+        "label": "[icon: play_arrow]",
+        "line": 87
+      },
+      {
+        "type": "button",
+        "label": "[icon: refresh]",
+        "line": 91
+      },
+      {
+        "type": "button",
+        "label": "[icon: flag]",
+        "line": 96
+      }
+    ],
+    "navigation": [],
+    "buttons": [
+      {
+        "type": "button",
+        "label": "settings",
+        "line": 50
+      },
+      {
+        "type": "button",
+        "label": "WORK",
+        "line": 60
+      },
+      {
+        "type": "button",
+        "label": "BREAK",
+        "line": 63
+      },
+      {
+        "type": "button",
+        "label": "play_arrow\n          Start",
+        "line": 86
+      },
+      {
+        "type": "button",
+        "label": "refresh",
+        "line": 90
+      },
+      {
+        "type": "button",
+        "label": "[icon: timer]",
+        "line": 45
+      },
+      {
+        "type": "button",
+        "label": "[icon: settings]",
+        "line": 51
+      },
+      {
+        "type": "button",
+        "label": "[icon: play_arrow]",
+        "line": 87
+      },
+      {
+        "type": "button",
+        "label": "[icon: refresh]",
+        "line": 91
+      },
+      {
+        "type": "button",
+        "label": "[icon: flag]",
+        "line": 96
+      }
+    ],
+    "inputs": [],
+    "hardcodedData": [],
+    "totalInteractive": 10,
+    "requiresRouter": false,
+    "requiresDragDrop": false
+  }
+]

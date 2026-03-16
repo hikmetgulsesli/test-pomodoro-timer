@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Pomodoro Timer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ef4444", 
+            "secondary": "#22c55e",
+            "background-light": "#f6f6f8",
+            "background-dark": "#1a1a2e",
+            "surface-dark": "#16213e",
+            "border-dark": "#0f3460"
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+  <style>
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.35s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+  <div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-border-dark px-10 py-4 w-full">
+      <div class="flex items-center gap-4">
+        <div class="text-primary">
+          <span class="material-symbols-outlined text-2xl">timer</span>
+        </div>
+        <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Pomodoro Timer</h2>
+      </div>
+    </header>
+    <main class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-4xl mx-auto">
+      <div class="flex flex-col items-center w-full max-w-md bg-white dark:bg-surface-dark rounded-2xl shadow-xl dark:shadow-none p-10 border border-slate-100 dark:border-border-dark">
+        <!-- Mode Indicator -->
+        <div class="flex gap-4 mb-8 bg-slate-100 dark:bg-background-dark p-1 rounded-full">
+          <button id="workBtn" class="px-6 py-2 rounded-full bg-primary text-white font-bold text-sm tracking-widest shadow-lg shadow-primary/30 transition-all">
+            WORK
+          </button>
+          <button id="breakBtn" class="px-6 py-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-bold text-sm tracking-widest transition-all">
+            BREAK
+          </button>
+        </div>
+        
+        <!-- Circular Timer -->
+        <div class="relative flex items-center justify-center mb-10 w-64 h-64 sm:w-80 sm:h-80">
+          <svg class="w-full h-full" viewBox="0 0 100 100">
+            <!-- Background circle -->
+            <circle class="text-slate-200 dark:text-border-dark stroke-current" cx="50" cy="50" fill="transparent" r="46" stroke-width="4"></circle>
+            <!-- Progress circle -->
+            <circle id="progressCircle" class="text-primary stroke-current progress-ring__circle" cx="50" cy="50" fill="transparent" r="46" stroke-dasharray="289.026" stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></circle>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span id="timerDisplay" class="text-6xl sm:text-7xl font-bold text-slate-900 dark:text-white tracking-tighter tabular-nums">
+              25:00
+            </span>
+            <span id="modeLabel" class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest">
+              Focus Time
+            </span>
+          </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="flex w-full gap-4 justify-center px-4">
+          <button id="startBtn" class="flex-1 flex items-center justify-center gap-2 rounded-xl h-14 bg-primary hover:bg-red-600 text-white text-lg font-bold shadow-lg shadow-primary/30 transition-all active:scale-95">
+            <span class="material-symbols-outlined">play_arrow</span>
+            Start
+          </button>
+          <button id="resetBtn" aria-label="Reset Timer" class="flex items-center justify-center rounded-xl size-14 bg-slate-100 dark:bg-background-dark text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-border-dark transition-all active:scale-95">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </div>
+        
+        <!-- Session Counter -->
+        <div class="mt-8 flex items-center gap-3 text-slate-500 dark:text-slate-400 font-medium">
+          <span class="material-symbols-outlined text-xl">flag</span>
+          <span id="sessionCount">Session 1 of 4</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Timer state
+    const WORK_TIME = 25 * 60; // 25 minutes in seconds
+    const BREAK_TIME = 5 * 60; // 5 minutes in seconds
+    const SESSIONS_BEFORE_LONG_BREAK = 4;
+    const LONG_BREAK_TIME = 15 * 60; // 15 minutes
+    
+    let timeRemaining = WORK_TIME;
+    let totalTime = WORK_TIME;
+    let isRunning = false;
+    let isWorkMode = true;
+    let sessionCount = 1;
+    let timerInterval = null;
+    
+    // DOM elements
+    const timerDisplay = document.getElementById('timerDisplay');
+    const modeLabel = document.getElementById('modeLabel');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const workBtn = document.getElementById('workBtn');
+    const breakBtn = document.getElementById('breakBtn');
+    const progressCircle = document.getElementById('progressCircle');
+    const sessionCountEl = document.getElementById('sessionCount');
+    
+    // Circle progress calculation
+    const CIRCUMFERENCE = 2 * Math.PI * 46; // 289.026
+    
+    function updateDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Update progress circle
+      const progress = (totalTime - timeRemaining) / totalTime;
+      const offset = CIRCUMFERENCE * (1 - progress);
+      progressCircle.style.strokeDashoffset = offset;
+    }
+    
+    function updateModeUI() {
+      if (isWorkMode) {
+        workBtn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
+        workBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
+        breakBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
+        breakBtn.classList.add('text-slate-500', 'dark:text-slate-400');
+        modeLabel.textContent = 'Focus Time';
+        progressCircle.classList.add('text-primary');
+      } else {
+        breakBtn.classList.add('bg-secondary', 'text-white', 'shadow-lg', 'shadow-secondary/30');
+        breakBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
+        workBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
+        workBtn.classList.add('text-slate-500', 'dark:text-slate-400');
+        modeLabel.textContent = 'Break Time';
+        progressCircle.classList.remove('text-primary');
+        progressCircle.classList.add('text-secondary');
+      }
+    }
+    
+    function updateSessionUI() {
+      sessionCountEl.textContent = `Session ${sessionCount} of ${SESSIONS_BEFORE_LONG_BREAK}`;
+    }
+    
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+    
+    function startTimer() {
+      isRunning = true;
+      startBtn.innerHTML = '<span class="material-symbols-outlined">pause</span> Pause';
+      timerInterval = setInterval(() => {
+        if (timeRemaining > 0) {
+          timeRemaining--;
+          updateDisplay();
+        } else {
+          timerComplete();
+        }
+      }, 1000);
+    }
+    
+    function pauseTimer() {
+      isRunning = false;
+      startBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Start';
+      clearInterval(timerInterval);
+    }
+    
+    function resetTimer() {
+      pauseTimer();
+      if (isWorkMode) {
+        timeRemaining = WORK_TIME;
+        totalTime = WORK_TIME;
+      } else {
+        timeRemaining = BREAK_TIME;
+        totalTime = BREAK_TIME;
+      }
+      updateDisplay();
+    }
+    
+    function timerComplete() {
+      pauseTimer();
+      
+      // Play notification sound (optional)
+      // const audio = new Audio('notification.mp3');
+      // audio.play();
+      
+      if (isWorkMode) {
+        // Switch to break
+        if (sessionCount >= SESSIONS_BEFORE_LONG_BREAK) {
+          timeRemaining = LONG_BREAK_TIME;
+          totalTime = LONG_BREAK_TIME;
+          modeLabel.textContent = 'Long Break';
+        } else {
+          timeRemaining = BREAK_TIME;
+          totalTime = BREAK_TIME;
+        }
+        isWorkMode = false;
+      } else {
+        // Switch to work
+        if (sessionCount >= SESSIONS_BEFORE_LONG_BREAK) {
+          sessionCount = 1;
+        } else {
+          sessionCount++;
+        }
+        timeRemaining = WORK_TIME;
+        totalTime = WORK_TIME;
+        isWorkMode = true;
+        updateSessionUI();
+      }
+      
+      updateModeUI();
+      updateDisplay();
+    }
+    
+    function switchToWork() {
+      if (!isWorkMode) {
+        pauseTimer();
+        isWorkMode = true;
+        timeRemaining = WORK_TIME;
+        totalTime = WORK_TIME;
+        updateModeUI();
+        updateDisplay();
+      }
+    }
+    
+    function switchToBreak() {
+      if (isWorkMode) {
+        pauseTimer();
+        isWorkMode = false;
+        if (sessionCount >= SESSIONS_BEFORE_LONG_BREAK) {
+          timeRemaining = LONG_BREAK_TIME;
+          totalTime = LONG_BREAK_TIME;
+        } else {
+          timeRemaining = BREAK_TIME;
+          totalTime = BREAK_TIME;
+        }
+        updateModeUI();
+        updateDisplay();
+      }
+    }
+    
+    // Event listeners
+    startBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    workBtn.addEventListener('click', switchToWork);
+    breakBtn.addEventListener('click', switchToBreak);
+    
+    // Initialize
+    updateDisplay();
+    updateModeUI();
+    updateSessionUI();
+  </script>
+</body>
+</html>

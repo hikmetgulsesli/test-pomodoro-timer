@@ -4,9 +4,19 @@
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Pomodoro Timer</title>
+  
+  <!-- Design Tokens -->
   <link rel="stylesheet" href="stitch/design-tokens.css">
+  
+  <!-- Google Fonts: Sora for headings, Nunito Sans for body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Material Symbols -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
     tailwind.config = {
@@ -14,53 +24,152 @@
       theme: {
         extend: {
           colors: {
-            "primary": "#f43325", 
-            "secondary": "#22c55e",
-            "background-light": "#f6f6f8",
-            "background-dark": "#221110",
-            "surface-dark": "#16213e",
-            "border-dark": "#0f3460"
+            primary: "var(--color-primary)",
+            "primary-hover": "var(--color-primary-hover)",
+            secondary: "var(--color-secondary)",
+            "secondary-hover": "var(--color-secondary-hover)",
+            "background-light": "var(--color-background-light)",
+            "background-dark": "var(--color-background-dark)",
+            "surface-dark": "var(--color-surface-dark)",
+            "border-dark": "var(--color-border-dark)",
           },
           fontFamily: {
-            "display": ["Inter", "sans-serif"]
+            heading: ["var(--font-heading)"],
+            body: ["var(--font-body)"],
+            display: ["var(--font-display)"],
           },
-          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          spacing: {
+            '18': '4.5rem',
+            '88': '22rem',
+          },
+          borderRadius: {
+            DEFAULT: "var(--radius-DEFAULT)",
+            lg: "var(--radius-lg)",
+            xl: "var(--radius-xl)",
+            "2xl": "var(--radius-2xl)",
+            full: "var(--radius-full)",
+          },
         },
       },
     }
   </script>
+  
   <style>
+    /* Progress ring animation */
     .progress-ring__circle {
-      transition: stroke-dashoffset 0.35s;
+      transition: stroke-dashoffset 0.35s ease-in-out;
       transform: rotate(-90deg);
       transform-origin: 50% 50%;
     }
+    
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--color-background-dark);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-border-dark);
+      border-radius: var(--radius-full);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-slate-600);
+    }
+    
+    /* Smooth transitions for theme switching */
+    * {
+      transition-property: background-color, border-color;
+      transition-duration: 250ms;
+      transition-timing-function: ease-in-out;
+    }
+    
+    /* Timer display tabular nums for consistent width */
+    .timer-display {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    
+    /* Button active states */
+    .btn-primary:active {
+      transform: scale(0.95);
+    }
+    
+    .btn-secondary:active {
+      transform: scale(0.95);
+    }
+    
+    /* Focus rings */
+    .focus-ring:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    
+    /* Mode button active state */
+    .mode-btn.active {
+      background-color: var(--color-primary);
+      color: white;
+      box-shadow: var(--shadow-primary);
+    }
+    
+    .mode-btn.active-secondary {
+      background-color: var(--color-secondary);
+      color: white;
+      box-shadow: var(--shadow-secondary);
+    }
+    
+    /* Hover lift effect */
+    .hover-lift {
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
-<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<body class="font-body bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col">
   <div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+    <!-- Header -->
     <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-border-dark px-10 py-4 w-full">
       <div class="flex items-center gap-4">
         <div class="text-primary">
           <span class="material-symbols-outlined text-2xl">timer</span>
         </div>
-        <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Pomodoro Timer</h2>
+        <h2 class="font-heading text-lg font-bold leading-tight tracking-tight">Pomodoro Timer</h2>
       </div>
       <div class="flex items-center gap-6">
-        <button aria-label="Settings" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+        <button 
+          id="settingsBtn"
+          aria-label="Settings" 
+          class="focus-ring text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-dark"
+        >
           <span class="material-symbols-outlined">settings</span>
         </button>
         <div class="bg-surface-dark bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/20" data-alt="User profile avatar"></div>
       </div>
     </header>
+    
+    <!-- Main Content -->
     <main class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-4xl mx-auto">
       <div class="flex flex-col items-center w-full max-w-md bg-white dark:bg-surface-dark rounded-2xl shadow-xl dark:shadow-none p-10 border border-slate-100 dark:border-border-dark">
+        
         <!-- Mode Indicator -->
-        <div class="flex gap-4 mb-8 bg-slate-100 dark:bg-background-dark p-1 rounded-full">
-          <button id="workBtn" class="px-6 py-2 rounded-full bg-primary text-white font-bold text-sm tracking-widest shadow-lg shadow-primary/30 transition-all">
+        <div class="flex gap-2 mb-8 bg-slate-100 dark:bg-background-dark p-1 rounded-full">
+          <button 
+            id="workBtn" 
+            class="mode-btn active focus-ring px-6 py-2 rounded-full font-heading font-bold text-sm tracking-widest transition-all"
+          >
             WORK
           </button>
-          <button id="breakBtn" class="px-6 py-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-bold text-sm tracking-widest transition-all">
+          <button 
+            id="breakBtn" 
+            class="mode-btn focus-ring px-6 py-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-heading font-bold text-sm tracking-widest transition-all"
+          >
             BREAK
           </button>
         </div>
@@ -69,15 +178,39 @@
         <div class="relative flex items-center justify-center mb-10 w-64 h-64 sm:w-80 sm:h-80">
           <svg class="w-full h-full" viewBox="0 0 100 100">
             <!-- Background circle -->
-            <circle class="text-slate-200 dark:text-border-dark stroke-current" cx="50" cy="50" fill="transparent" r="46" stroke-width="4"></circle>
+            <circle 
+              class="text-slate-200 dark:text-border-dark stroke-current" 
+              cx="50" 
+              cy="50" 
+              fill="transparent" 
+              r="46" 
+              stroke-width="4"
+            ></circle>
             <!-- Progress circle -->
-            <circle id="progressCircle" class="text-primary stroke-current progress-ring__circle" cx="50" cy="50" fill="transparent" r="46" stroke-dasharray="289.026" stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></circle>
+            <circle 
+              id="progressCircle" 
+              class="text-primary stroke-current progress-ring__circle" 
+              cx="50" 
+              cy="50" 
+              fill="transparent" 
+              r="46" 
+              stroke-dasharray="289.026" 
+              stroke-dashoffset="0" 
+              stroke-linecap="round" 
+              stroke-width="4"
+            ></circle>
           </svg>
           <div class="absolute flex flex-col items-center justify-center">
-            <span id="timerDisplay" class="text-6xl sm:text-7xl font-bold text-slate-900 dark:text-white tracking-tighter tabular-nums">
+            <span 
+              id="timerDisplay" 
+              class="timer-display font-heading text-6xl sm:text-7xl font-bold text-slate-900 dark:text-white tracking-tighter"
+            >
               25:00
             </span>
-            <span id="modeLabel" class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest">
+            <span 
+              id="modeLabel" 
+              class="font-body text-sm font-medium text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest"
+            >
               Focus Time
             </span>
           </div>
@@ -85,11 +218,18 @@
         
         <!-- Controls -->
         <div class="flex w-full gap-4 justify-center px-4">
-          <button id="startBtn" class="flex-1 flex items-center justify-center gap-2 rounded-xl h-14 bg-primary hover:bg-red-600 text-white text-lg font-bold shadow-lg shadow-primary/30 transition-all active:scale-95">
+          <button 
+            id="startBtn" 
+            class="btn-primary focus-ring flex-1 flex items-center justify-center gap-2 rounded-xl h-14 bg-primary hover:bg-primary-hover text-white text-lg font-bold shadow-primary transition-all"
+          >
             <span class="material-symbols-outlined">play_arrow</span>
-            Start
+            <span id="startBtnText">Start</span>
           </button>
-          <button id="resetBtn" aria-label="Reset Timer" class="flex items-center justify-center rounded-xl size-14 bg-slate-100 dark:bg-background-dark text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-border-dark transition-all active:scale-95">
+          <button 
+            id="resetBtn" 
+            aria-label="Reset Timer" 
+            class="btn-secondary focus-ring flex items-center justify-center rounded-xl size-14 bg-slate-100 dark:bg-background-dark text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-border-dark transition-all"
+          >
             <span class="material-symbols-outlined">refresh</span>
           </button>
         </div>
@@ -97,19 +237,24 @@
         <!-- Session Counter -->
         <div class="mt-8 flex items-center gap-3 text-slate-500 dark:text-slate-400 font-medium">
           <span class="material-symbols-outlined text-xl">flag</span>
-          <span id="sessionCount">Session 1 of 4</span>
+          <span id="sessionCount" class="font-body">Session 1 of 4</span>
         </div>
       </div>
     </main>
   </div>
 
   <script>
-    // Timer state
+    // ============================================
+    // POMODORO TIMER LOGIC
+    // ============================================
+    
+    // Constants
     const WORK_TIME = 25 * 60; // 25 minutes in seconds
     const BREAK_TIME = 5 * 60; // 5 minutes in seconds
-    const SESSIONS_BEFORE_LONG_BREAK = 4;
     const LONG_BREAK_TIME = 15 * 60; // 15 minutes
+    const SESSIONS_BEFORE_LONG_BREAK = 4;
     
+    // Timer state
     let timeRemaining = WORK_TIME;
     let totalTime = WORK_TIME;
     let isRunning = false;
@@ -121,15 +266,24 @@
     const timerDisplay = document.getElementById('timerDisplay');
     const modeLabel = document.getElementById('modeLabel');
     const startBtn = document.getElementById('startBtn');
+    const startBtnText = document.getElementById('startBtnText');
     const resetBtn = document.getElementById('resetBtn');
     const workBtn = document.getElementById('workBtn');
     const breakBtn = document.getElementById('breakBtn');
     const progressCircle = document.getElementById('progressCircle');
     const sessionCountEl = document.getElementById('sessionCount');
+    const settingsBtn = document.getElementById('settingsBtn');
     
     // Circle progress calculation
-    const CIRCUMFERENCE = 2 * Math.PI * 46; // 289.026
+    const CIRCUMFERENCE = 2 * Math.PI * 46; // ~289.026
     
+    // ============================================
+    // FUNCTIONS
+    // ============================================
+    
+    /**
+     * Update the timer display and progress circle
+     */
     function updateDisplay() {
       const minutes = Math.floor(timeRemaining / 60);
       const seconds = timeRemaining % 60;
@@ -139,31 +293,44 @@
       const progress = (totalTime - timeRemaining) / totalTime;
       const offset = CIRCUMFERENCE * (1 - progress);
       progressCircle.style.strokeDashoffset = offset;
+      
+      // Update document title
+      document.title = `${timerDisplay.textContent} - Pomodoro Timer`;
     }
     
+    /**
+     * Update the mode UI (WORK/BREAK buttons)
+     */
     function updateModeUI() {
       if (isWorkMode) {
-        workBtn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
-        workBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
-        breakBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
-        breakBtn.classList.add('text-slate-500', 'dark:text-slate-400');
+        // Work mode styling
+        workBtn.classList.add('active');
+        workBtn.classList.remove('active-secondary');
+        breakBtn.classList.remove('active', 'active-secondary');
         modeLabel.textContent = 'Focus Time';
         progressCircle.classList.add('text-primary');
+        progressCircle.classList.remove('text-secondary');
       } else {
-        breakBtn.classList.add('bg-secondary', 'text-white', 'shadow-lg', 'shadow-secondary/30');
-        breakBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
-        workBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
-        workBtn.classList.add('text-slate-500', 'dark:text-slate-400');
-        modeLabel.textContent = 'Break Time';
+        // Break mode styling
+        breakBtn.classList.add('active-secondary');
+        breakBtn.classList.remove('active');
+        workBtn.classList.remove('active', 'active-secondary');
+        modeLabel.textContent = sessionCount >= SESSIONS_BEFORE_LONG_BREAK ? 'Long Break' : 'Break Time';
         progressCircle.classList.remove('text-primary');
         progressCircle.classList.add('text-secondary');
       }
     }
     
+    /**
+     * Update the session counter display
+     */
     function updateSessionUI() {
       sessionCountEl.textContent = `Session ${sessionCount} of ${SESSIONS_BEFORE_LONG_BREAK}`;
     }
     
+    /**
+     * Toggle timer start/pause
+     */
     function toggleTimer() {
       if (isRunning) {
         pauseTimer();
@@ -172,9 +339,15 @@
       }
     }
     
+    /**
+     * Start the timer
+     */
     function startTimer() {
       isRunning = true;
-      startBtn.innerHTML = '<span class="material-symbols-outlined">pause</span> Pause';
+      startBtnText.textContent = 'Pause';
+      startBtn.innerHTML = '<span class="material-symbols-outlined">pause</span> <span id="startBtnText">Pause</span>';
+      startBtn.classList.add('bg-opacity-90');
+      
       timerInterval = setInterval(() => {
         if (timeRemaining > 0) {
           timeRemaining--;
@@ -185,44 +358,60 @@
       }, 1000);
     }
     
+    /**
+     * Pause the timer
+     */
     function pauseTimer() {
       isRunning = false;
-      startBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Start';
+      startBtnText.textContent = 'Start';
+      startBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> <span id="startBtnText">Start</span>';
+      startBtn.classList.remove('bg-opacity-90');
       clearInterval(timerInterval);
     }
     
+    /**
+     * Reset the timer
+     */
     function resetTimer() {
       pauseTimer();
       if (isWorkMode) {
         timeRemaining = WORK_TIME;
         totalTime = WORK_TIME;
       } else {
-        timeRemaining = BREAK_TIME;
-        totalTime = BREAK_TIME;
+        timeRemaining = sessionCount >= SESSIONS_BEFORE_LONG_BREAK ? LONG_BREAK_TIME : BREAK_TIME;
+        totalTime = sessionCount >= SESSIONS_BEFORE_LONG_BREAK ? LONG_BREAK_TIME : BREAK_TIME;
       }
       updateDisplay();
     }
     
+    /**
+     * Handle timer completion
+     */
     function timerComplete() {
       pauseTimer();
       
-      // Play notification sound (optional)
-      // const audio = new Audio('notification.mp3');
-      // audio.play();
+      // Play notification sound if supported
+      try {
+        // eslint-disable-next-line no-undef
+        const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+        audio.play().catch(() => {});
+      } catch {
+        // Audio playback not supported
+      }
       
       if (isWorkMode) {
         // Switch to break
+        isWorkMode = false;
         if (sessionCount >= SESSIONS_BEFORE_LONG_BREAK) {
           timeRemaining = LONG_BREAK_TIME;
           totalTime = LONG_BREAK_TIME;
-          modeLabel.textContent = 'Long Break';
         } else {
           timeRemaining = BREAK_TIME;
           totalTime = BREAK_TIME;
         }
-        isWorkMode = false;
       } else {
         // Switch to work
+        isWorkMode = true;
         if (sessionCount >= SESSIONS_BEFORE_LONG_BREAK) {
           sessionCount = 1;
         } else {
@@ -230,7 +419,6 @@
         }
         timeRemaining = WORK_TIME;
         totalTime = WORK_TIME;
-        isWorkMode = true;
         updateSessionUI();
       }
       
@@ -238,6 +426,9 @@
       updateDisplay();
     }
     
+    /**
+     * Switch to work mode
+     */
     function switchToWork() {
       if (!isWorkMode) {
         pauseTimer();
@@ -249,6 +440,9 @@
       }
     }
     
+    /**
+     * Switch to break mode
+     */
     function switchToBreak() {
       if (isWorkMode) {
         pauseTimer();
@@ -265,13 +459,39 @@
       }
     }
     
-    // Event listeners
+    /**
+     * Open settings (placeholder for future implementation)
+     */
+    function openSettings() {
+      // TODO: Implement settings modal in future story
+      console.log('Settings clicked - to be implemented');
+    }
+    
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+    
     startBtn.addEventListener('click', toggleTimer);
     resetBtn.addEventListener('click', resetTimer);
     workBtn.addEventListener('click', switchToWork);
     breakBtn.addEventListener('click', switchToBreak);
+    settingsBtn.addEventListener('click', openSettings);
     
-    // Initialize
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+        toggleTimer();
+      } else if (e.code === 'KeyR' && e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+        resetTimer();
+      }
+    });
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
     updateDisplay();
     updateModeUI();
     updateSessionUI();

@@ -1,0 +1,22 @@
+/* design-tokens.css -- auto-generated from Stitch HTML */
+:root {
+  --color-primary: #f43325;
+  --color-background-light: #f8f6f5;
+  --color-background-dark: #221110;
+  --color-card-bg: #ffffff;
+  --font-display: Space Grotesk, sans-serif;
+  --font-body: Nunito Sans, sans-serif;
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+  --font-sora: Sora, sans-serif;
+  --font-nunito: Nunito Sans, sans-serif;
+  --color-secondary: #22c55e;
+  --color-surface-dark: #16213e;
+  --color-border-dark: #0f3460;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-google-0: Sora;
+  --font-google-1: Inter;
+  --font-google-2: Space Grotesk;
+}
